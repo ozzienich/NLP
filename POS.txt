@@ -1,0 +1,4 @@
+# POS tagging:
+from nltk.tag import StanfordPOSTagger
+st = StanfordPOSTagger('/home/nltk/devel/nltk-server/nltk-data/oz/model/english-left3words-distsim.tagger', '/home/nltk/devel/nltk-server/nltk-data/oz/jar/stanford-postagger.jar')
+st.tag('What is the airspeed of an unladen swallow ?'.split())
