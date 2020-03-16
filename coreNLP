@@ -1,0 +1,97 @@
+
+wget http://nlp.stanford.edu/software/stanford-corenlp-full-2016-10-31.zip
+unzip stanford-corenlp-full-2016-10-31.zip && cd stanford-corenlp-full-2016-10-31
+
+java -mx4g -cp "*" edu.stanford.nlp.pipeline.StanfordCoreNLPServer \
+-preload tokenize,ssplit,pos,lemma,parse,depparse \
+-status_port 9000 -port 9000 -timeout 15000
+
+
+>>> from nltk.tag.stanford import CoreNLPPOSTagger, CoreNLPNERTagger
+>>> from nltk.parse.corenlp import CoreNLPParser
+
+>>> stpos, stner = CoreNLPPOSTagger(), CoreNLPNERTagger()
+
+>>> stpos.tag('What is the airspeed of an unladen swallow ?'.split())
+[(u'What', u'WP'), (u'is', u'VBZ'), (u'the', u'DT'), (u'airspeed', u'NN'), (u'of', u'IN'), (u'an', u'DT'), (u'unladen', u'JJ'), (u'swallow', u'VB'), (u'?', u'.')]
+
+>>> stner.tag('Rami Eid is studying at Stony Brook University in NY'.split())
+[(u'Rami', u'PERSON'), (u'Eid', u'PERSON'), (u'is', u'O'), (u'studying', u'O'), (u'at', u'O'), (u'Stony', u'ORGANIZATION'), (u'Brook', u'ORGANIZATION'), (u'University', u'ORGANIZATION'), (u'in', u'O'), (u'NY', u'O')]
+
+
+>>> parser = CoreNLPParser(url='http://localhost:9000')
+
+>>> next(
+...     parser.raw_parse('The quick brown fox jumps over the lazy dog.')
+... ).pretty_print()  # doctest: +NORMALIZE_WHITESPACE
+                     ROOT
+                      |
+                      S
+       _______________|__________________________
+      |                         VP               |
+      |                _________|___             |
+      |               |             PP           |
+      |               |     ________|___         |
+      NP              |    |            NP       |
+  ____|__________     |    |     _______|____    |
+ DT   JJ    JJ   NN  VBZ   IN   DT      JJ   NN  .
+ |    |     |    |    |    |    |       |    |   |
+The quick brown fox jumps over the     lazy dog  .
+
+>>> (parse_fox, ), (parse_wolf, ) = parser.raw_parse_sents(
+...     [
+...         'The quick brown fox jumps over the lazy dog.',
+...         'The quick grey wolf jumps over the lazy fox.',
+...     ]
+... )
+
+
+>>> parse_fox.pretty_print()  # doctest: +NORMALIZE_WHITESPACE
+                     ROOT
+                      |
+                      S
+       _______________|__________________________
+      |                         VP               |
+      |                _________|___             |
+      |               |             PP           |
+      |               |     ________|___         |
+      NP              |    |            NP       |
+  ____|__________     |    |     _______|____    |
+ DT   JJ    JJ   NN  VBZ   IN   DT      JJ   NN  .
+ |    |     |    |    |    |    |       |    |   |
+The quick brown fox jumps over the     lazy dog  .
+
+>>> parse_wolf.pretty_print()  # doctest: +NORMALIZE_WHITESPACE
+                     ROOT
+                      |
+                      S
+       _______________|__________________________
+      |                         VP               |
+      |                _________|___             |
+      |               |             PP           |
+      |               |     ________|___         |
+      NP              |    |            NP       |
+  ____|_________      |    |     _______|____    |
+ DT   JJ   JJ   NN   VBZ   IN   DT      JJ   NN  .
+ |    |    |    |     |    |    |       |    |   |
+The quick grey wolf jumps over the     lazy fox  .
+
+>>> (parse_dog, ), (parse_friends, ) = parser.parse_sents(
+...     [
+...         "I 'm a dog".split(),
+...         "This is my friends ' cat ( the tabby )".split(),
+...     ]
+... )
+
+>>> parse_dog.pretty_print()  # doctest: +NORMALIZE_WHITESPACE
+        ROOT
+         |
+         S
+  _______|____
+ |            VP
+ |    ________|___
+ NP  |            NP
+ |   |         ___|___
+PRP VBP       DT      NN
+ |   |        |       |
+ I   'm       a      dog
