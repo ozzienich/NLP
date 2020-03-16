@@ -1,0 +1,2 @@
+# NLP
+mengeja bahasa
